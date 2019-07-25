@@ -5,15 +5,25 @@
   <div id="r-result" ref="rResult"></div>
   <div class="_input">
     <div>
-      <input type="text" @keydown.enter="handlerGetBoundary" v-model="district" class="radius_district" placeholder="请输入行政区">
-      <span class="searchBtn" @click="handlerGetBoundary">行政区</span>
+      <input type="text" @keydown.enter="getBoundary(1)" v-model="district" class="radius_district" placeholder="请输入行政区">
+      <span class="searchBtn" @click="getBoundary(1)">行政区</span>
     </div>
     <div style="position:relative">
       <p class="font_x" @click="clearAddress">X</p>
       <input type="text" @keydown.enter="searchBtn" v-model="address" class="radius_district user_write" placeholder="请输入地点">
       <input type="text" @keydown.enter="searchBtn" v-model="radius" class="radius_district" placeholder="请输入半径(千米)">
-      <span class="searchBtn" @click="searchBtn">搜索</span>
+      <span class="searchBtn" @click="clearAddress">清空</span>
     </div>
+  </div>
+  <div class="select_map">
+    <el-select @change="handlerSelect" v-model="value" placeholder="权限模拟选择">
+      <el-option
+        v-for="item in options"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value">
+      </el-option>
+    </el-select>
   </div>
 </div>
 </template>
@@ -31,26 +41,13 @@ export default {
       district: '',
       tempData: [
         {
-          name: '趣学世界总部', // 机构名字
-          address: '北京市中关村南大街31号', // 机构地址
-          lat: 39.953295, // 纬度
-          lng: 116.327617, // 经度
-          radius: 2, // 保护半径
-          time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
-          content: '招生', // 合作内容
-          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
-          user: '付春燕',
-          phone: '18190730323'
-        },
-        {
           name: '四川省成都市青羊区五朵金花教育', // 机构名字
           address: '成都市青羊区方池街17号', // 机构地址
           lat: 30.665242, // 纬度
           lng: 104.060496, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 1, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '付春燕',
@@ -63,7 +60,7 @@ export default {
           lng: 103.52406, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 2, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '刘思雨',
@@ -76,7 +73,7 @@ export default {
           lng: 121.545665, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 2, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '林青青',
@@ -89,7 +86,7 @@ export default {
           lng: 109.474346, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 1, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '赵福明',
@@ -102,7 +99,7 @@ export default {
           lng: 118.818502, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 2, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '刘小勇',
@@ -115,7 +112,7 @@ export default {
           lng: 124.132362, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 1, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '程禹潼',
@@ -128,7 +125,7 @@ export default {
           lng: 107.420068, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 1, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '吴静',
@@ -141,65 +138,469 @@ export default {
           lng: 118.527847, // 经度
           radius: 2, // 保护半径
           time: ['2019-07-24','2019-09-23'], // 合同周期
-          type: '加盟', // 合作类型
+          type: 2, // 合作类型 1-加盟 2-课程
           content: '招生', // 合作内容
           power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
           user: '齐裕',
           phone: '18562931343'
         },
+        {
+          name: '趣学世界总部', // 机构名字
+          address: '北京市中关村南大街31号', // 机构地址
+          lat: 39.952714, // 纬度
+          lng: 116.33015, // 经度116.33015,39.952714
+          radius: 1, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+      ],
+      vipData: [
+        {
+          name: '四川省成都市青羊区五朵金花教育', // 机构名字
+          address: '成都市青羊区方池街17号', // 机构地址
+          lat: 30.665590, // 纬度
+          lng: 104.060366, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+        {
+          name: '四川省成都市大邑县美涵少儿英语', // 机构名字
+          address: '四川省成都市大邑县潘家街四段625号美涵学苑(佳菲牛排二楼)', // 机构地址
+          lat: 31.574697, // 纬度
+          lng: 102.52406, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘思雨',
+          phone: '18200342315'
+        },
+        {
+          name: '上海市杨浦区东方星教育培训中心（芬蓝）', // 机构名字
+          address: '上海杨浦区民星路378号301室', // 机构地址
+          lat: 31.017827, // 纬度
+          lng: 120.545665, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '林青青',
+          phone: '13918157411'
+        },
+        {
+          name: '陕西省渭南市临渭区优唯国际少儿英语', // 机构名字
+          address: '陕西省渭南市临渭区胜利大街上上国风北门西侧2楼商铺（优唯国际少儿英语）', // 机构地址
+          lat: 36.51668, // 纬度
+          lng: 108.474346, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '赵福明',
+          phone: '18161921230'
+        },
+        {
+          name: '江苏省南京市鼓楼区美华校区', // 机构名字
+          address: '南京市玄武区龙蟠中路167号金卡大厦407室', // 机构地址
+          lat: 30.079814, // 纬度
+          lng: 118.818502, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘小勇',
+          phone: '15850505580'
+        },
+        {
+          name: '辽宁省本溪市优贝乐国际儿童教育中心', // 机构名字
+          address: '辽宁省本溪市本溪满族自治县优贝乐国际儿童教育中心', // 机构地址
+          lat: 42.304817, // 纬度
+          lng: 124.132362, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '程禹潼',
+          phone: '18641425759'
+        },
+        {
+          name: '内蒙古自治区巴彦淖尔市临河区奇凡教育', // 机构名字
+          address: '内蒙古巴彦淖尔市临河区新华西街原歌舞团二楼', // 机构地址
+          lat: 38.759942, // 纬度
+          lng: 107.420068, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '吴静',
+          phone: '13947827920'
+        },
+        {
+          name: '山东省东营市西城区校区欣益名教育', // 机构名字
+          address: '山东省东营市西城区万家新城底商', // 机构地址
+          lat: 36.48803, // 纬度
+          lng: 117.527847, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '齐裕',
+          phone: '18562931343'
+        },
+        {
+          name: '趣学世界总部', // 机构名字
+          address: '北京市中关村南大街31号', // 机构地址
+          lat: 38.952714, // 纬度
+          lng: 115.33015, // 经度116.33015,39.952714
+          radius: 1, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+      ],
+      joinData: [
+        {
+          name: '四川省成都市青羊区五朵金花教育', // 机构名字
+          address: '成都市青羊区方池街17号', // 机构地址
+          lat: 28.665242, // 纬度
+          lng: 104.060496, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+        {
+          name: '四川省成都市大邑县美涵少儿英语', // 机构名字
+          address: '四川省成都市大邑县潘家街四段625号美涵学苑(佳菲牛排二楼)', // 机构地址
+          lat: 29.574697, // 纬度
+          lng: 103.52406, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘思雨',
+          phone: '18200342315'
+        },
+        {
+          name: '上海市杨浦区东方星教育培训中心（芬蓝）', // 机构名字
+          address: '上海杨浦区民星路378号301室', // 机构地址
+          lat: 35.317827, // 纬度
+          lng: 101.545665, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '林青青',
+          phone: '13918157411'
+        },
+        {
+          name: '陕西省渭南市临渭区优唯国际少儿英语', // 机构名字
+          address: '陕西省渭南市临渭区胜利大街上上国风北门西侧2楼商铺（优唯国际少儿英语）', // 机构地址
+          lat: 33.51668, // 纬度
+          lng: 119.474346, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '赵福明',
+          phone: '18161921230'
+        },
+        {
+          name: '江苏省南京市鼓楼区美华校区', // 机构名字
+          address: '南京市玄武区龙蟠中路167号金卡大厦407室', // 机构地址
+          lat: 30.079814, // 纬度
+          lng: 120.818502, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘小勇',
+          phone: '15850505580'
+        },
+        {
+          name: '辽宁省本溪市优贝乐国际儿童教育中心', // 机构名字
+          address: '辽宁省本溪市本溪满族自治县优贝乐国际儿童教育中心', // 机构地址
+          lat: 43.304817, // 纬度
+          lng: 124.132362, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '程禹潼',
+          phone: '18641425759'
+        },
+        {
+          name: '内蒙古自治区巴彦淖尔市临河区奇凡教育', // 机构名字
+          address: '内蒙古巴彦淖尔市临河区新华西街原歌舞团二楼', // 机构地址
+          lat: 37.759942, // 纬度
+          lng: 117.420068, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '吴静',
+          phone: '13947827920'
+        },
+        {
+          name: '山东省东营市西城区校区欣益名教育', // 机构名字
+          address: '山东省东营市西城区万家新城底商', // 机构地址
+          lat: 33.48803, // 纬度
+          lng: 120.527847, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '齐裕',
+          phone: '18562931343'
+        },
+        {
+          name: '趣学世界总部', // 机构名字
+          address: '北京市中关村南大街31号', // 机构地址
+          lat: 35.952714, // 纬度
+          lng: 119.33015, // 经度116.33015,39.952714
+          radius: 1, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+      ],
+      canalData: [
+        {
+          name: '四川省成都市青羊区五朵金花教育', // 机构名字
+          address: '成都市青羊区方池街17号', // 机构地址
+          lat: 26.665242, // 纬度
+          lng: 109.060496, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+        {
+          name: '四川省成都市大邑县美涵少儿英语', // 机构名字
+          address: '四川省成都市大邑县潘家街四段625号美涵学苑(佳菲牛排二楼)', // 机构地址
+          lat: 30.574697, // 纬度
+          lng: 113.52406, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘思雨',
+          phone: '18200342315'
+        },
+        {
+          name: '上海市杨浦区东方星教育培训中心（芬蓝）', // 机构名字
+          address: '上海杨浦区民星路378号301室', // 机构地址
+          lat: 31.317827, // 纬度
+          lng: 101.545665, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '林青青',
+          phone: '13918157411'
+        },
+        {
+          name: '陕西省渭南市临渭区优唯国际少儿英语', // 机构名字
+          address: '陕西省渭南市临渭区胜利大街上上国风北门西侧2楼商铺（优唯国际少儿英语）', // 机构地址
+          lat: 32.51668, // 纬度
+          lng: 110.474346, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '赵福明',
+          phone: '18161921230'
+        },
+        {
+          name: '江苏省南京市鼓楼区美华校区', // 机构名字
+          address: '南京市玄武区龙蟠中路167号金卡大厦407室', // 机构地址
+          lat: 30.079814, // 纬度
+          lng: 108.818502, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '刘小勇',
+          phone: '15850505580'
+        },
+        {
+          name: '辽宁省本溪市优贝乐国际儿童教育中心', // 机构名字
+          address: '辽宁省本溪市本溪满族自治县优贝乐国际儿童教育中心', // 机构地址
+          lat: 40.304817, // 纬度
+          lng: 114.132362, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '程禹潼',
+          phone: '18641425759'
+        },
+        {
+          name: '内蒙古自治区巴彦淖尔市临河区奇凡教育', // 机构名字
+          address: '内蒙古巴彦淖尔市临河区新华西街原歌舞团二楼', // 机构地址
+          lat: 32.759942, // 纬度
+          lng: 109.420068, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '吴静',
+          phone: '13947827920'
+        },
+        {
+          name: '山东省东营市西城区校区欣益名教育', // 机构名字
+          address: '山东省东营市西城区万家新城底商', // 机构地址
+          lat: 40.48803, // 纬度
+          lng: 118.527847, // 经度
+          radius: 2, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 2, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '齐裕',
+          phone: '18562931343'
+        },
+        {
+          name: '趣学世界总部', // 机构名字
+          address: '北京市中关村南大街31号', // 机构地址
+          lat: 41.952714, // 纬度
+          lng: 116.33015, // 经度116.33015,39.952714
+          radius: 1, // 保护半径
+          time: ['2019-07-24','2019-09-23'], // 合同周期
+          type: 1, // 合作类型 1-加盟 2-课程
+          content: '招生', // 合作内容
+          power: 1, // 权限 1-大客户部 2-加盟部 3-分渠道 4-严禁开发
+          user: '付春燕',
+          phone: '18190730323'
+        },
+      ],
+      value: '',
+      options: [
+        {
+          value: '1',
+          label: '大客户部'
+        },
+        {
+          value: '2',
+          label: '加盟部'
+        },
+        {
+          value: '3',
+          label: '分渠道开发'
+        }
       ]
     }
   },
   mounted () {
     this.map = new BMap.Map(this.$refs.allmap)  // 创建Map实例
     this.baiduMap()
-    for (let i = 0; i < this.tempData.length; i++) {
-      let point = new BMap.Point(this.tempData[i].lng, this.tempData[i].lat)
-      console.log(point)
-      // alert('纬度'+ array[i].location.lat + '经度' + array[i].location.lng)
-      this.map.centerAndZoom(point, 5)
-      let marker = new BMap.Marker(point)
-      // marker.setIcon({size:(50,50)})
-      this.map.addOverlay(marker)
-      // 添加marker上的数字
-      var label = new BMap.Label(i+1,{offset:new BMap.Size(5,4)});
-      if (i+1 == 10) {
-        label = new BMap.Label(i+1,{offset:new BMap.Size(1,4)});
-      }
-      // 设置marker上的数字样式
-      label.setStyle({background:'none',color:'#fff',border:'none'})
-      marker.setLabel(label);
-      // 画半径2km的圆
-      let Circle = new BMap.Circle(point, this.tempData[i].radius*1000, {strokeColor:'red', fillColor: '', fillOpacity: 0, strokeWeight: 2, strokeOpacity: 0.5})
-      this.map.addOverlay(Circle)
-      let content = `<div style="margin:0;line-height:20px;padding:2px;">
-                      学校地址：${this.tempData[i].address}<br/>
-                      联系人：${this.tempData[i].user}<br/>
-                      联系电话：${this.tempData[i].phone}<br/>
-                      保护半径：${this.tempData[i].radius}<br/>
-                      合同周期：${this.tempData[i].time[0]}${this.tempData[i].time[1]}<br/>
-                      课程合作类型：${this.tempData[i].type}<br/>
-                      合作内容：${this.tempData[i].content}<br/>
-                    </div>`
-      // console.log(content)
-      // let marker = new BMap.Marker(point);  // 创建标注
-      // this.map.addOverlay(marker);              // 将标注添加到地图中
-      this.map.centerAndZoom(point, 15);
-      let opts = {
-        width : 300,     // 信息窗口宽度
-        height: 200,     // 信息窗口高度
-        title : this.tempData[i].name , // 信息窗口标题
-        // enableMessage:true,//设置允许信息窗发送短息
-        // message:"亲耐滴，晚上一起吃个饭吧？戳下面的链接看下地址喔~"
-      }
-      let infoWindow = new BMap.InfoWindow(content, opts);  // 创建信息窗口对象
-      marker.addEventListener("click", () => {
-        this.map.openInfoWindow(infoWindow,point); //开启信息窗口
-      })
-      // this.getAddressInfo(point,this.tempData[i].name,content)
-    }
+    this.notToOpen()
+    this.allMapData(this.tempData)
   },
   methods:{
+    notToOpen () {
+      // 严禁开发区域
+      let a = ['南京市','济宁市']
+      a.forEach((item,index) => {
+        this.getBoundary(0,item)
+      })
+    },
+    allMapData (data) {
+      this.map.clearOverlays()
+      this.notToOpen()
+      for (let i = 0; i < data.length; i++) {
+        let point = new BMap.Point(data[i].lng, data[i].lat)
+        // console.log(point)
+        // alert('纬度'+ array[i].location.lat + '经度' + array[i].location.lng)
+        this.map.centerAndZoom(point, 5)
+        let marker = new BMap.Marker(point)
+        // marker.setIcon({size:(50,50)})
+        this.map.addOverlay(marker)
+        // 添加marker上的数字
+        var label = new BMap.Label(i+1,{offset:new BMap.Size(5,4)});
+        if (i+1 == 10) {
+          label = new BMap.Label(i+1,{offset:new BMap.Size(1,4)});
+        }
+        // 设置marker上的数字样式
+        label.setStyle({background:'none',color:'#fff',border:'none'})
+        marker.setLabel(label);
+        let color = ''
+        if (data[i].type == 1) {
+          color = 'red'
+        } else {
+          color = 'blue'
+        }
+        // 画半径2km的圆
+        let Circle = new BMap.Circle(point, data[i].radius*1000, {strokeColor: color, fillColor: '', fillOpacity: 0, strokeWeight: 2, strokeOpacity: 0.5})
+        this.map.addOverlay(Circle)
+        let content = `<div style="margin:0;line-height:20px;padding:2px;">
+                        学校地址：${data[i].address}<br/>
+                        联系人：${data[i].user}<br/>
+                        联系电话：${data[i].phone}<br/>
+                        保护半径：${data[i].radius}<br/>
+                        合同周期：${data[i].time[0]} 至 ${data[i].time[1]}<br/>
+                        课程合作类型：${data[i].type == 1 ? '加盟' : '课程'}<br/>
+                        合作内容：${data[i].content}<br/>
+                      </div>`
+        // console.log(content)
+        // let marker = new BMap.Marker(point);  // 创建标注
+        // this.map.addOverlay(marker);              // 将标注添加到地图中
+        this.map.centerAndZoom(point, 5);
+        let opts = {
+          width : 300,     // 信息窗口宽度
+          height: 210,     // 信息窗口高度
+          title : data[i].name , // 信息窗口标题
+          // enableMessage:true,//设置允许信息窗发送短息
+          // message:"亲耐滴，晚上一起吃个饭吧？戳下面的链接看下地址喔~"
+        }
+        let infoWindow = new BMap.InfoWindow(content, opts);  // 创建信息窗口对象
+        marker.addEventListener("click", () => {
+          this.map.openInfoWindow(infoWindow,point); //开启信息窗口
+        })
+        // this.getAddressInfo(point,data[i].name,content)
+      }
+    },
     // 点击获取地址的信息
     getAddressInfo (pointD,title,content) {
       console.log(content)
@@ -238,10 +639,11 @@ export default {
       if (!this.address) {
         this.$message.warning('请输入地址')
         return
-      } else if (!this.radius) {
-        this.$message.warning('请输入半径')
-        return
       }
+      // else if (!this.radius) {
+      //   this.$message.warning('请输入半径')
+      //   return
+      // }
       // this.searchData('')
       this.searchData(this.address)
       console.log(this.radius,this.address)
@@ -352,13 +754,13 @@ export default {
 
       // 鼠标拾取坐标
       this.map.addEventListener("click",(e) => {
-        // console.log(e)
+        console.log(e)
         console.log(e.point.lng + "," + e.point.lat)
         var geoc = new BMap.Geocoder()
         var pt = e.point
         geoc.getLocation(pt, function(rs){
           var addComp = rs.addressComponents
-          console.log(addComp)
+          console.log(rs)
           console.log(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
         })
       })
@@ -400,10 +802,13 @@ export default {
     },
     // 划分行政区
     // 添加行政区划分
-    getBoundary () {
+    getBoundary (val,district) {
       var bdary = new BMap.Boundary();
-      bdary.get(this.district, (rs) => {       //获取行政区域
-        this.map.clearOverlays()       //清除地图覆盖物
+      district = district || this.district
+      bdary.get(district, (rs) => {       //获取行政区域
+        if (val) {
+          this.map.clearOverlays()     //清除地图覆盖物
+        }
         var count = rs.boundaries.length; //行政区域的点有多少个
         if (count === 0) {
           alert('未能获取当前输入行政区域');
@@ -411,11 +816,13 @@ export default {
         }
         var pointArray = [];
         for (var i = 0; i < count; i++) {
-          var ply = new BMap.Polygon(rs.boundaries[i], {strokeWeight: 2, strokeColor: "#ff0000"}); //建立多边形覆盖物
+          var ply = new BMap.Polygon(rs.boundaries[i], {fillColor: 'red', strokeWeight: 2, strokeColor: "#ff0000"}); //建立多边形覆盖物
           this.map.addOverlay(ply);  //添加覆盖物
           pointArray = pointArray.concat(ply.getPath());
         }
-        this.map.setViewport(pointArray);    //调整视野
+        if (val) {
+          this.map.setViewport(pointArray);    //调整视野
+        }
         this.addlabel()
       });
     },
@@ -444,11 +851,20 @@ export default {
 	      this.map.addOverlay(labelArray[i]);
 	    }
     },
-    handlerGetBoundary () {
-      this.getBoundary()
-    },
     clearAddress () {
       this.address = ''
+      this.allMapData(this.tempData)
+    },
+    handlerSelect (val) {
+      let data = []
+      if (val == 1) {
+        data = this.vipData
+      } else if (val == 2) {
+        data = this.joinData
+      } else {
+        data = this.canalData
+      }
+      this.allMapData(data)
     }
   }
 }
@@ -508,5 +924,11 @@ p {
   line-height: 30px;
   background: pink;
   cursor: pointer;
+}
+.select_map {
+  position: absolute;
+  right: 20px;
+  top: 100px;
+  width: 145px;
 }
 </style>
